@@ -1,0 +1,31 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+# Editor-based HTTP Client requests
+/httpRequests/
+# PyCharm / JetBrains IDE files
+.idea/
+*.iml
+
+# Exceptions: If you want to share specific PyCharm team settings, uncomment these:
+# !.idea/vcs.xml
+# !.idea/runConfigurations/
+# !.idea/codeStyles/
+
+# Python compiled bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Local environment variables / secrets
+.env
+.env.local
