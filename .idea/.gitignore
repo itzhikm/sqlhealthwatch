@@ -29,3 +29,4 @@ ENV/
 # Local environment variables / secrets
 .env
 .env.local
+/modules.xml
