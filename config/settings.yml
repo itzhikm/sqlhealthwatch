@@ -1,13 +1,16 @@
 repository:                       # the central SQL Server monitoring database
-  name: PRD-DBA-REPO              # instance that hosts DBA_Monitoring (NOT one of the monitored boxes)
-  host: prd-dba-repo.corp.local
+  # LOCAL DEV. In production this must be a dedicated / non-critical instance, NOT one of the
+  # monitored boxes -- so collection load never touches production and a prod outage never takes
+  # monitoring down.
+  name: LOCAL-DEV
+  host: 127.0.0.1
   port: 1433
   database: DBA_Monitoring
   schema: mon
-  auth: windows                   # windows | sql  (windows preferred; else password_ref)
-  # username: svc_dba_monitor
-  # password_ref: env:REPO_PW
-  driver: "ODBC Driver 18 for SQL Server"
+  auth: sql                       # windows | sql  (windows preferred; else password_ref)
+  username: pyspark_user
+  password_ref: env:SQL_MONITOR_PW
+  driver: "ODBC Driver 17 for SQL Server"
   encrypt: true
   trust_server_certificate: true
   connect_timeout_s: 5

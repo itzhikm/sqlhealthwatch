@@ -21,6 +21,8 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=7.4", "pytest-cov>=4.1"]
+# Only needed to freeze a standalone exe for a host with no Python -- see packaging/.
+build = ["pyinstaller>=6.0"]
 
 [project.scripts]
 sqlhealthwatch = "sqlhealthwatch.__main__:main"

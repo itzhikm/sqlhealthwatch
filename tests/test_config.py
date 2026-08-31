@@ -198,6 +198,21 @@ class TestPackaging:
         listed = self._requirement_names(project_root / "requirements-dev.txt")
         assert extra <= listed
 
+    def test_build_requirements_cover_the_build_extra(self, project_root):
+        import re
+
+        extra = {
+            re.split(r"[><=!]", dep)[0].lower()
+            for dep in self._pyproject(project_root)["project"]["optional-dependencies"]["build"]
+        }
+        listed = self._requirement_names(project_root / "requirements-build.txt")
+        assert extra <= listed
+
+    def test_the_build_toolchain_is_not_a_runtime_dependency(self, project_root):
+        # PyInstaller must never end up on a collector host as a runtime requirement.
+        runtime = self._requirement_names(project_root / "requirements.txt")
+        assert "pyinstaller" not in runtime
+
     def test_dev_requirements_include_the_runtime_set(self, project_root):
         # The unit suite imports the collector modules, so it needs the runtime deps too.
         text = (project_root / "requirements-dev.txt").read_text(encoding="utf-8")

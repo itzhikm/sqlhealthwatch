@@ -196,9 +196,42 @@ class _RunIdConnection:
         return {"run_id": self.run_id}
 
 
+# A fixed inventory the runner tests own. Reading the real config/ directory made the suite depend
+# on whatever is currently in servers.yml -- editing the live inventory to point at one host broke
+# four tests that had nothing to do with the change.
+TEST_SERVERS = """
+defaults:
+  driver: "ODBC Driver 17 for SQL Server"
+  connect_timeout_s: 5
+  query_timeout_s: 30
+servers:
+  - name: PRD-SQL-01
+    host: prd-sql-01.test
+    auth: windows
+    enabled: true
+    tags: [tier1]
+  - name: PRD-SQL-02
+    host: prd-sql-02.test
+    auth: windows
+    enabled: true
+    tags: [tier2]
+  - name: PRD-DBA-REPO
+    host: prd-dba-repo.test
+    auth: windows
+    enabled: true
+    tags: [repo]
+"""
+
+
 @pytest.fixture
-def config(project_root):
-    return load_config(project_root / "config", project_root)
+def config(project_root, tmp_path):
+    """The shipped settings/thresholds/alerts, but an inventory the tests control."""
+    import shutil
+
+    for name in ("settings.yml", "thresholds.yml", "alerts.yml"):
+        shutil.copy(project_root / "config" / name, tmp_path / name)
+    (tmp_path / "servers.yml").write_text(TEST_SERVERS, encoding="utf-8")
+    return load_config(tmp_path, project_root)
 
 
 @pytest.fixture(autouse=True)

@@ -141,3 +141,41 @@ class TestUsageLine:
         # PyInstaller sets sys.frozen; the usage line must then name the exe, not `python -m`.
         monkeypatch.setattr("sys.frozen", True, raising=False)
         assert build_parser().prog == "sqlhealthwatch"
+
+
+class TestDirectExecution:
+    """An IDE's Run button executes the file as a script, with no parent package.
+
+    Without the package-context guard at the top of __main__.py, every relative import in it fails
+    with "attempted relative import with no known parent package" -- so the documented "just hit
+    Run" has to be verified, not assumed.
+    """
+
+    def _run(self, project_root, *args):
+        import subprocess
+        import sys
+
+        return subprocess.run(
+            [sys.executable, str(project_root / "src" / "sqlhealthwatch" / "__main__.py"), *args],
+            capture_output=True, text=True, cwd=str(project_root.parent),
+        )
+
+    def test_running_the_file_as_a_script_works(self, project_root):
+        result = self._run(project_root, "collectors")
+        assert result.returncode == 0, result.stderr
+        assert "cpu" in result.stdout
+
+    def test_no_relative_import_error(self, project_root):
+        result = self._run(project_root, "collectors")
+        assert "attempted relative import" not in result.stderr
+
+    def test_the_module_form_still_works(self, project_root):
+        import subprocess
+        import sys
+
+        result = subprocess.run(
+            [sys.executable, "-m", "sqlhealthwatch", "collectors"],
+            capture_output=True, text=True, cwd=str(project_root),
+        )
+        assert result.returncode == 0, result.stderr
+        assert "cpu" in result.stdout

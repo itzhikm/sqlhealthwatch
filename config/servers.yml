@@ -1,7 +1,11 @@
 # Fleet inventory. Onboarding a server = adding a block here + running the provisioning
-# script on the instance + `sqlhealthwatch test-conn --server NAME`. No code change.
+# script on the instance + `python -m sqlhealthwatch test-conn --server NAME`. No code change.
+#
+# Every instance below uses SQL authentication with the shared `pyspark_user` login. The password
+# is NOT here: `password_ref` names an environment variable, resolved at load time from .env (which
+# is gitignored). A literal password in this file is rejected by config validation.
 defaults:
-  driver: "ODBC Driver 18 for SQL Server"
+  driver: "ODBC Driver 17 for SQL Server"
   encrypt: true
   trust_server_certificate: true   # set false once certs are trusted
   connect_timeout_s: 5
@@ -10,25 +14,10 @@ defaults:
 
 servers:
   - name: PRD-SQL-01
-    host: prd-sql-01.corp.local
+    host: 127.0.0.1
     port: 1433
-    auth: windows            # windows | sql
+    auth: sql
+    username: pyspark_user
+    password_ref: env:SQL_MONITOR_PW
     enabled: true
     tags: [tier1, erp, us-east]
-
-  - name: PRD-SQL-02
-    host: prd-sql-02.corp.local
-    instance: SQL2019        # named instance (resolved via SQL Browser or explicit port)
-    auth: sql
-    username: svc_dba_monitor
-    password_ref: env:PRD_SQL_02_PW   # never inline
-    enabled: true
-    tags: [tier2, reporting]
-
-  # The repository monitors itself so a filling repo disk raises a normal space alert.
-  - name: PRD-DBA-REPO
-    host: prd-dba-repo.corp.local
-    port: 1433
-    auth: windows
-    enabled: true
-    tags: [repo]

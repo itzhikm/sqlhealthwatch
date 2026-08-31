@@ -185,6 +185,35 @@ Three caveats are built into the code, because ignoring them produces confident 
   about existing indexes. Rank by `improvement_measure`, review against `index_column` for the same
   table, and never apply as collected.
 
+## Building a standalone exe
+
+Only needed for a collector host with no Python installed. Otherwise `pip install .` already gives
+you a `sqlhealthwatch.exe` launcher.
+
+```bash
+pip install -r requirements-build.txt
+pyinstaller packaging/sqlhealthwatch.spec --clean --noconfirm
+# -> dist/sqlhealthwatch/  (~183 MB; pandas and pyarrow dominate)
+```
+
+Deploy `config/` and `sql/` *beside* the exe, not inside it — onboarding a server is a YAML edit and
+tuning a query is a `.sql` edit, and neither should need a rebuild:
+
+```
+C:\sqlhealthwatch    sqlhealthwatch.exe
+    _internal\      runtime (never separate this from the exe)
+    config\  sql\   editable
+    logs\           created on first run
+```
+
+Task Scheduler action: `C:\sqlhealthwatch\sqlhealthwatch.exe` with arguments
+`daily --config C:\sqlhealthwatch\config`. Pass the config path absolutely so the job's working
+directory cannot break it.
+
+**The ODBC driver is not bundled and cannot be.** `pyodbc` is only the Python binding; Microsoft ODBC
+Driver 18 is a Windows system component. A frozen exe still needs it installed on every collector
+host — without it every connection fails with `IM002 ... no default driver specified`.
+
 ## Development
 
 ```bash

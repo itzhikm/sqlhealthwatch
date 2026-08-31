@@ -9,10 +9,9 @@ Run it as a module:
     python -m sqlhealthwatch prune
     python -m sqlhealthwatch collectors
 
-With no arguments it runs the fast tier, so hitting Run on this file in an IDE does the useful
-thing. In production this is driven by two Windows Task Scheduler jobs rather than a long-lived
-process -- they survive reboots, and last-run status shows up in a tool the operations team already
-uses.
+With no arguments it runs the fast tier, so an IDE's Run button on this file does the useful thing.
+In production this is driven by two Windows Task Scheduler jobs rather than a long-lived process --
+they survive reboots, and last-run status shows up in a tool the operations team already uses.
 
 The collector's only output is the ``DBA_Monitoring`` repository (plus threshold alerts and the
 optional Parquet archive). There is no report and no web front end: query the ``mon`` tables.
@@ -24,8 +23,30 @@ import argparse
 import logging
 import sys
 
-from .config import AppConfig, ConfigError, load_config
-from .util.logging import setup_logging
+# An IDE's Run button executes this file as a top-level script rather than as `python -m
+# sqlhealthwatch`. Python then gives it no parent package, and every `from .config import ...` below
+# fails with "attempted relative import with no known parent package". Re-establish the package
+# context so the file works run either way -- otherwise the documented "just hit Run" is a lie.
+if __package__ in (None, ""):  # pragma: no cover - only taken when run as a script
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    __package__ = "sqlhealthwatch"
+
+try:
+    from .config import AppConfig, ConfigError, load_config
+    from .util.logging import setup_logging
+except ModuleNotFoundError as exc:  # pragma: no cover - depends on the running interpreter
+    # Overwhelmingly this means the wrong interpreter: an IDE run configuration still pointing at
+    # another project's virtualenv, or a collector host where the dependencies were installed into
+    # a different Python. A bare "No module named 'yaml'" does not say that, so name the culprit.
+    raise SystemExit(
+        f"sqlhealthwatch: missing dependency {exc.name!r}.\n"
+        f"  running interpreter : {sys.executable}\n"
+        f"  This is usually the wrong interpreter rather than a broken install.\n"
+        f"  Fix: point your IDE (or PATH) at the project's own virtualenv, or install into\n"
+        f"       the interpreter above with:  pip install -e \".[dev]\""
+    ) from exc
 
 log = logging.getLogger("sqlhealthwatch")
 

@@ -227,10 +227,10 @@ class Repository:
         batch_size = self.config.bulk.batch_rows
         written = 0
 
+        self.connection._set_timeout(None)  # noqa: SLF001 - timeout is connection-level in pyodbc
         cursor = self.connection._conn.cursor()  # noqa: SLF001 - fast_executemany is cursor-level
         try:
             cursor.fast_executemany = self.config.bulk.fast_executemany
-            cursor.timeout = self.config.query_timeout_s
             for start in range(0, len(rows), batch_size):
                 chunk = rows[start : start + batch_size]
                 cursor.executemany(sql, chunk)

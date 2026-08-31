@@ -85,9 +85,9 @@ class SqlConnection:
     # ----------------------------------------------------------------------------- querying
 
     def query(self, sql: str, params: Sequence[Any] | None = None, timeout_s: int | None = None) -> list[dict]:
+        self._set_timeout(timeout_s)
         cursor = self._conn.cursor()
         try:
-            cursor.timeout = timeout_s if timeout_s is not None else self.cfg.query_timeout_s
             cursor.execute(_batch(sql), *(params or ()))
             return _fetch_dicts(cursor)
         finally:
@@ -109,13 +109,22 @@ class SqlConnection:
         return self.query(f"USE {_quote_name(database)};\n{sql}", params, timeout_s)
 
     def execute(self, sql: str, params: Sequence[Any] | None = None, timeout_s: int | None = None) -> int:
+        self._set_timeout(timeout_s)
         cursor = self._conn.cursor()
         try:
-            cursor.timeout = timeout_s if timeout_s is not None else self.cfg.query_timeout_s
             cursor.execute(sql, *(params or ()))
             return cursor.rowcount
         finally:
             cursor.close()
+
+    def _set_timeout(self, timeout_s: int | None) -> None:
+        """Query timeout, in seconds.
+
+        It lives on the *connection* in pyodbc -- ``Cursor`` has no ``timeout`` attribute, and
+        setting one there is silently useless at best (it raised AttributeError here). This is what
+        bounds a DMV read so the collector cannot hang on a busy production instance.
+        """
+        self._conn.timeout = timeout_s if timeout_s is not None else self.cfg.query_timeout_s
 
     # -------------------------------------------------------------------------- lifecycle
 
