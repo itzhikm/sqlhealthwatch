@@ -8,6 +8,25 @@
 
 ---
 
+> ## Scope amendment — collector only
+>
+> **The design has been narrowed since this spec was written: there is no HTML report, no web front
+> end and no Excel/CSV deliverable.** The project is a *collector*. Its output is the
+> `DBA_Monitoring` repository (§8), plus threshold alerts (§11) and the optional Parquet archive
+> (§8.5). A DBA reads the `mon` tables directly.
+>
+> Consequently **§10 (Reporting) and §10.3 (Excel/CSV export) are out of scope**, and the references
+> throughout to "the daily HTML report is the dashboard" no longer apply. Everything that report
+> would have shown is still *collected* and stored — the version-limitation badges of §2.1 are kept
+> as `mon.server.feature_flags`, and the index/statistics suggestions of §7.4 and §7.5 are kept as
+> rows in `mon.index_*` and `mon.stats_stale`. What is gone is the rendering, not the data.
+>
+> The collector is invoked as a main module (`python -m sqlhealthwatch`), which supersedes the
+> `sqlhealthwatch report` and `sqlhealthwatch export` commands listed in §15.
+>
+> Everything else in this spec — the collectors, the version gating of §2.1, the repository schema,
+> retention, alerting, scheduling and the safety rules — stands as written.
+
 ## 1. Purpose & goals
 
 Build a Python project that performs **daily (and intraday) health monitoring of ~40 production SQL Server instances** from a single central collector, surfaces system bottlenecks, and produces a report a DBA reviews each morning plus threshold-based alerts.
