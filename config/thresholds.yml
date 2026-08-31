@@ -1,0 +1,45 @@
+# fleet defaults; per-server or per-tag overrides allowed
+defaults:
+  cpu:
+    sustained_pct_warn: 80        # avg over last N fast samples
+    sustained_pct_crit: 90
+    sustained_samples: 4          # N consecutive fast samples (4 x 15min = 1h)
+    signal_wait_pct_warn: 25      # scheduler/CPU pressure
+  memory:
+    ple_warn: 300                 # seconds; absolute floor, scaled by buffer pool (see derive.py)
+    ple_crit: 180
+    memory_grants_pending_warn: 1
+  io:
+    read_latency_ms_warn: 20
+    read_latency_ms_crit: 50
+    write_latency_ms_warn: 20
+    write_latency_ms_crit: 50
+  space:
+    db_free_pct_warn: 15
+    db_free_pct_crit: 8
+    drive_free_pct_warn: 15
+    drive_free_pct_crit: 8
+    drive_free_mb_warn: 20480     # used instead of pct on legacy (xp_fixeddrives) servers
+    drive_free_mb_crit: 10240
+    days_to_full_warn: 7
+  index:
+    frag_pct_min_report: 15       # ignore below this
+    frag_pct_rebuild: 30          # >30 rebuild, 15-30 reorg (guidance)
+    min_page_count: 1000          # ignore tiny indexes
+  stats:
+    stale_days_warn: 7
+    modification_ratio_warn: 0.20 # modified rows / rowcount
+  blocking:
+    block_seconds_warn: 30
+    block_seconds_crit: 120
+  deadlock:
+    count_24h_warn: 1             # any deadlock in the last 24h is worth surfacing
+    count_24h_crit: 10            # a burst = a hot code path to fix
+
+overrides:
+  by_tag:
+    reporting:
+      io: { read_latency_ms_warn: 40 }   # DW/reporting tolerates higher read latency
+  by_server:
+    PRD-SQL-01:
+      cpu: { sustained_pct_warn: 85 }

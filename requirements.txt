@@ -1,0 +1,16 @@
+# Runtime dependencies for the collector host.
+#
+# pyproject.toml is the authoritative declaration; this file mirrors it for `pip install -r`
+# and for IDEs that look for a requirements file. Keep the two in step.
+#
+# System requirements that pip cannot install:
+#   - Python 3.11 or later
+#   - Microsoft ODBC Driver 18 for SQL Server (pyodbc is only the Python binding)
+#     https://learn.microsoft.com/sql/connect/odbc/download-odbc-driver-for-sql-server
+
+pyodbc>=5.0             # TDS connectivity to the fleet and to the repository
+pandas>=2.1             # every collector's transform returns a DataFrame
+pyarrow>=14.0           # Parquet writer for the optional cold archive (data/exports/)
+pydantic>=2.5           # config validation, so a bad YAML edit fails at startup
+PyYAML>=6.0             # the four config files
+python-dotenv>=1.0      # loads .env so env: secret references resolve

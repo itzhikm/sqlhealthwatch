@@ -1,0 +1,27 @@
+channels:
+  email:
+    enabled: true
+    smtp_host: smtp.corp.local
+    smtp_port: 25
+    use_tls: false
+    # username: sqlhealthwatch
+    # password_ref: env:SMTP_PW
+    from: sqlhealthwatch@corp.local
+    to: [dba-team@corp.local]
+  teams:
+    enabled: false
+    webhook_ref: env:TEAMS_WEBHOOK
+  slack:
+    enabled: false
+    webhook_ref: env:SLACK_WEBHOOK
+
+routing:
+  crit: [email, teams]
+  warn: [email]
+
+cooldown_minutes: 60
+quiet_hours: { start: "22:00", end: "06:00", allow_crit: true }
+
+by_tag:
+  tier1:
+    routing: { crit: [email, teams, slack] }

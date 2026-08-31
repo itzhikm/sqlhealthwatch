@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sqlhealthwatch"
+version = "1.0.0"
+description = "Health metric collector for a fleet of production SQL Server instances"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+authors = [{ name = "Itzik Manhaimer" }]
+dependencies = [
+    "pyodbc>=5.0",
+    "pandas>=2.1",
+    "pyarrow>=14.0",
+    "pydantic>=2.5",
+    "PyYAML>=6.0",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.4", "pytest-cov>=4.1"]
+
+[project.scripts]
+sqlhealthwatch = "sqlhealthwatch.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+sqlhealthwatch = ["storage/*.sql"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "integration: requires a live SQL Server (deselected by default)",
+]
+addopts = "-m 'not integration'"
